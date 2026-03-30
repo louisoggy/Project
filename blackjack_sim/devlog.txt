@@ -2,3 +2,6 @@ Entry #1
 
 Created card class, hand_value function and shoe class.
 Tested a shoe size of 6 with multiple hands
+
+Entry #1.5
+Created more tests, covers a bust, multiple aces and single card
