@@ -64,3 +64,34 @@ if __name__ == "__main__":
 
     hand4 = [Card('Hearts', 'A'), Card('Spades', 'A'), Card('Diamonds', '9')]
     print(f"  A + A + 9 = {hand_value(hand4)} (expected 21)")
+
+    # extra tests
+
+    # more hand value tests
+    print("\nAdditional tests:")
+
+    hand5 = [Card('Hearts', 'A'), Card('Spades', 'K')]
+    print(f"  A + K = {hand_value(hand5)} (expected 21)")
+
+    hand6 = [Card('Hearts', '5'), Card('Spades', '5'), Card('Clubs', '5')]
+    print(f"  5 + 5 + 5 = {hand_value(hand6)} (expected 15)")
+
+    hand7 = [Card('Hearts', 'A'), Card('Spades', 'A'), Card('Clubs', 'A')]
+    print(f"  A + A + A = {hand_value(hand7)} (expected 13)")
+
+    hand8 = [Card('Hearts', 'K'), Card('Spades', 'Q'), Card('Clubs', '5')]
+    print(f"  K + Q + 5 = {hand_value(hand8)} (expected 25)")
+
+    hand9 = [Card('Hearts', '2')]
+    print(f"  2 = {hand_value(hand9)} (expected 2)")
+
+    hand10 = [Card('Hearts', 'A'), Card('Spades', 'A'), Card('Clubs', 'A'), Card('Diamonds', 'A')]
+    print(f"  A + A + A + A = {hand_value(hand10)} (expected 14)")
+
+    # more shoe tests
+    print("\nShoe size tests:")
+    shoe1 = Shoe(1)
+    print(f"  1-deck shoe: {len(shoe1.cards)} cards (expected 52)")
+
+    shoe8 = Shoe(8)
+    print(f"  8-deck shoe: {len(shoe8.cards)} cards (expected 416)")
