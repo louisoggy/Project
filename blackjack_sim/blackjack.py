@@ -39,59 +39,97 @@ class Shoe :
 
     def deal_card(self):
         return self.cards.pop()
+
+def play_hand(shoe):
+    player_hand = [shoe.deal_card()]
+    dealer_hand = [shoe.deal_card()]
+    player_hand.append(shoe.deal_card())
+    dealer_hand.append(shoe.deal_card())
+
+    player_total = hand_value(player_hand)
+    dealer_total = hand_value(dealer_hand)
+
+    player_blackjack = player_total == 21
+    dealer_blackjack = dealer_total == 21
+
+    if player_blackjack or dealer_blackjack:
+        if player_blackjack and dealer_blackjack:
+            result = "push"
+        elif player_blackjack:
+            result = "blackjack"
+        else:
+            result = "lose"
+        return {
+            "result": result,
+            "player_hand": player_hand,
+            "dealer_hand": dealer_hand,
+            "player_total": hand_value(player_hand),
+            "dealer_total": hand_value(dealer_hand)
+        }
+
+    while hand_value(player_hand) < 17:
+        player_hand.append(shoe.deal_card())
+
+    if hand_value(player_hand) > 21:
+        return {
+            "result": "lose",
+            "player_hand": player_hand,
+            "dealer_hand": dealer_hand,
+            "player_total": hand_value(player_hand),
+            "dealer_total": hand_value(dealer_hand)
+        }
+
+    while hand_value(dealer_hand) < 17:
+        dealer_hand.append(shoe.deal_card())
+
+    if hand_value(dealer_hand) > 21:
+        return {
+            "result": "win",
+            "player_hand": player_hand,
+            "dealer_hand": dealer_hand,
+            "player_total": hand_value(player_hand),
+            "dealer_total": hand_value(dealer_hand)
+        }
     
+    player_total = hand_value(player_hand)
+    dealer_total = hand_value(dealer_hand)
 
-    # TEST
+    if player_total > dealer_total:
+        result = "win"
+    elif player_total < dealer_total:
+        result = "lose"
+    else:
+        result = "push"
+
+    return {
+        "result": result,
+        "player_hand": player_hand,
+        "dealer_hand": dealer_hand,
+        "player_total": player_total,
+        "dealer_total": dealer_total
+    }
+
+def run_simulation(num_hands=10000, num_decks=6):
+    shoe = Shoe(num_decks)
+    results = {"win": 0, "lose": 0, "push": 0, "blackjack": 0}
+
+    for i in range(num_hands):
+        if len(shoe.cards) < 20:
+            shoe = Shoe(num_decks)
+        outcome = play_hand(shoe)
+        results[outcome["result"]] += 1
+
+    return results
+
 if __name__ == "__main__":
-    # test shoe
-    shoe = Shoe(6)
-    print("Dealing 5 cards from a 6-deck shoe:")
-    for i in range(5):
-        print(f"  {shoe.deal_card()}")
-    print(f"Cards remaining: {len(shoe.cards)}")
+    num_hands = 100000
+    print(f"Simulating {num_hands} hands...\n")
+    results = run_simulation(num_hands)
 
-    # test hand values
-    print("\nHand value tests:")
+    for result, count in results.items():
+        print(f"  {result}: {count} ({count/num_hands*100:.2f}%)")
 
-    hand1 = [Card('Hearts', '10'), Card('Spades', 'K')]
-    print(f"  10 + K = {hand_value(hand1)} (expected 20)")
-
-    hand2 = [Card('Hearts', 'A'), Card('Diamonds', '9')]
-    print(f"  A + 9 = {hand_value(hand2)} (expected 20)")
-
-    hand3 = [Card('Hearts', 'A'), Card('Clubs', '6'), Card('Diamonds', '8')]
-    print(f"  A + 6 + 8 = {hand_value(hand3)} (expected 15)")
-
-    hand4 = [Card('Hearts', 'A'), Card('Spades', 'A'), Card('Diamonds', '9')]
-    print(f"  A + A + 9 = {hand_value(hand4)} (expected 21)")
-
-    # extra tests
-
-    # more hand value tests
-    print("\nAdditional tests:")
-
-    hand5 = [Card('Hearts', 'A'), Card('Spades', 'K')]
-    print(f"  A + K = {hand_value(hand5)} (expected 21)")
-
-    hand6 = [Card('Hearts', '5'), Card('Spades', '5'), Card('Clubs', '5')]
-    print(f"  5 + 5 + 5 = {hand_value(hand6)} (expected 15)")
-
-    hand7 = [Card('Hearts', 'A'), Card('Spades', 'A'), Card('Clubs', 'A')]
-    print(f"  A + A + A = {hand_value(hand7)} (expected 13)")
-
-    hand8 = [Card('Hearts', 'K'), Card('Spades', 'Q'), Card('Clubs', '5')]
-    print(f"  K + Q + 5 = {hand_value(hand8)} (expected 25)")
-
-    hand9 = [Card('Hearts', '2')]
-    print(f"  2 = {hand_value(hand9)} (expected 2)")
-
-    hand10 = [Card('Hearts', 'A'), Card('Spades', 'A'), Card('Clubs', 'A'), Card('Diamonds', 'A')]
-    print(f"  A + A + A + A = {hand_value(hand10)} (expected 14)")
-
-    # more shoe tests
-    print("\nShoe size tests:")
-    shoe1 = Shoe(1)
-    print(f"  1-deck shoe: {len(shoe1.cards)} cards (expected 52)")
-
-    shoe8 = Shoe(8)
-    print(f"  8-deck shoe: {len(shoe8.cards)} cards (expected 416)")
+    wins = results["win"] + results["blackjack"]
+    losses = results["lose"]
+    print(f"\n  Overall win rate: {wins/num_hands*100:.2f}%")
+    print(f"  Overall lose rate: {losses/num_hands*100:.2f}%")

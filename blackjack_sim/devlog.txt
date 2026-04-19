@@ -5,3 +5,10 @@ Tested a shoe size of 6 with multiple hands
 
 Entry #1.5
 Created more tests, covers a bust, multiple aces and single card
+all tests passed from #1 and #1.5
+
+Entry #2
+Created run_simulation function.
+The shoe reshuffles when fewer than 20 cards remain.
+test - 100000 hands
+100000 hands with hit below 17, results show around 41% win rate vs around 50% loss rate
