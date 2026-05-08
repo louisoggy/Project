@@ -29,6 +29,41 @@ def hand_value(hand):
 
     return value
 
+def _card_rank_value(card):
+    if card.rank in ['J', 'Q', 'K']:
+        return 10
+    elif card.rank == 'A':
+        return 11
+    else:
+        return int(card.rank)
+
+def _is_soft(hand):
+    if not any(c.rank == 'A' for c in hand):
+        return False
+    hard_total = sum(1 if c.rank == 'A' else _card_rank_value(c) for c in hand)
+    return hand_value(hand) != hard_total
+
+def basic_strategy(player_hand, dealer_upcard):
+    total = hand_value(player_hand)
+    d = _card_rank_value(dealer_upcard)
+
+    if _is_soft(player_hand):
+        if total <= 17:
+            return "hit"
+        elif total == 18:
+            return "hit" if d >= 9 else "stand"
+        else:
+            return "stand"
+    else:
+        if total <= 11:
+            return "hit"
+        elif total == 12:
+            return "stand" if 4 <= d <= 6 else "hit"
+        elif total <= 16:
+            return "stand" if d <= 6 else "hit"
+        else:
+            return "stand"
+
 class Shoe :
     def __init__(self, num_decks=6):
         self.cards = [Card(suit, rank) for suit in SUITS for rank in RANKS] * num_decks
@@ -67,7 +102,8 @@ def play_hand(shoe):
             "dealer_total": hand_value(dealer_hand)
         }
 
-    while hand_value(player_hand) < 17:
+    dealer_upcard = dealer_hand[0]
+    while basic_strategy(player_hand, dealer_upcard) == "hit":
         player_hand.append(shoe.deal_card())
 
     if hand_value(player_hand) > 21:

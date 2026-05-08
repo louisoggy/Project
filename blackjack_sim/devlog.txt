@@ -12,3 +12,13 @@ Created run_simulation function.
 The shoe reshuffles when fewer than 20 cards remain.
 test - 100000 hands
 100000 hands with hit below 17, results show around 41% win rate vs around 50% loss rate
+
+Entry #3
+Added basic text UI. New file main.py, menu driven.
+Options: run simulation, watch a single hand, configure settings, quit.
+Hands and decks are adjustable at runtime, default 100000 hands / 6 decks.
+
+Entry #4
+Implemented basic strategy (hit/stand only) in basic_strategy().
+Player now decisions based on hand total and dealer upcard, with soft hands handled separately.
+Replaces the old hit-below-17 rule in play_hand.
