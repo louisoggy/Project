@@ -9,7 +9,7 @@ class Card :
 
     def __str__(self):
         return f"{self.rank} of {self.suit}"
-    
+
 def hand_value(hand):
     value = 0
     aces = 0
@@ -44,80 +44,66 @@ def _is_soft(hand):
     return hand_value(hand) != hard_total
 
 def basic_strategy(player_hand, dealer_upcard, can_double=True, can_split=True):
-    """
-    Standard S17/DAS basic strategy. Returns "hit", "stand", "double", or "split".
-    Priority: pairs -> soft totals -> hard totals.
-    can_double / can_split let the caller disable actions that aren't legal.
-    """
+    """Returns 'hit', 'stand', 'double', or 'split' using S17/DAS basic strategy."""
     total = hand_value(player_hand)
-    d = _card_rank_value(dealer_upcard)  # 2-9 face value, 10/J/Q/K=10, A=11
+    d = _card_rank_value(dealer_upcard)
 
-    # ------------------------------------------------------------------
-    # 1. PAIRS
-    # ------------------------------------------------------------------
-    # Pair detection: exactly two cards, same 10-value rank (10/J/Q/K all count as 10)
     if can_split and len(player_hand) == 2:
         r0 = _card_rank_value(player_hand[0])
         r1 = _card_rank_value(player_hand[1])
         if r0 == r1:
-            pv = r0  # pair value (2-11)
+            pv = r0
 
-            if pv == 11:                   # A,A -> always split
+            if pv == 11:
                 return "split"
-            if pv == 10:                   # 10,10 -> never split
+            if pv == 10:
                 return "stand"
-            if pv == 9:                    # 9,9 -> stand vs 7, 10, A
+            if pv == 9:                    # stand vs 7, 10, A; split otherwise
                 return "stand" if d in (7, 10, 11) else "split"
-            if pv == 8:                    # 8,8 -> always split
+            if pv == 8:
                 return "split"
-            if pv == 7:                    # 7,7 -> split vs 2-7
+            if pv == 7:
                 return "split" if 2 <= d <= 7 else "hit"
-            if pv == 6:                    # 6,6 -> split vs 2-6
+            if pv == 6:
                 return "split" if 2 <= d <= 6 else "hit"
-            if pv == 5:                    # 5,5 -> never split; fall through to hard-10
+            if pv == 5:                    # never split fives; fall through to hard-10
                 pass
-            elif pv == 4:                  # 4,4 -> split vs 5-6 (DAS) only
+            elif pv == 4:
                 return "split" if d in (5, 6) else "hit"
-            elif pv in (2, 3):             # 2,2 / 3,3 -> split vs 2-7
+            elif pv in (2, 3):
                 return "split" if 2 <= d <= 7 else "hit"
             # pv == 5 falls through to hard-total logic below
 
-    # ------------------------------------------------------------------
-    # 2. SOFT TOTALS  (hand contains an ace counted as 11)
-    # ------------------------------------------------------------------
     if _is_soft(player_hand):
-        if total >= 19:                    # soft 19+ -> always stand
+        if total >= 19:
             return "stand"
-        if total == 18:                    # soft 18 (A,7)
+        if total == 18:
             if 3 <= d <= 6:
-                return "double" if can_double else "stand"  # double or stand
+                return "double" if can_double else "stand"  # fallback is stand, not hit
             if d in (2, 7, 8):
                 return "stand"
-            return "hit"                   # vs 9, 10, A
-        if total == 17:                    # soft 17 (A,6) -> double vs 3-6
+            return "hit"
+        if total == 17:
             return "double" if (3 <= d <= 6 and can_double) else "hit"
-        if total in (15, 16):              # soft 15-16 (A,4 / A,5) -> double vs 4-6
+        if total in (15, 16):
             return "double" if (4 <= d <= 6 and can_double) else "hit"
-        if total in (13, 14):              # soft 13-14 (A,2 / A,3) -> double vs 5-6
+        if total in (13, 14):
             return "double" if (5 <= d <= 6 and can_double) else "hit"
-        return "hit"                       # soft 12 or lower (shouldn't normally occur)
+        return "hit"  # soft 12 or lower, shouldn't normally occur
 
-    # ------------------------------------------------------------------
-    # 3. HARD TOTALS
-    # ------------------------------------------------------------------
-    if total <= 8:                         # 5-8 -> always hit
+    if total <= 8:
         return "hit"
-    if total == 9:                         # double vs 3-6, else hit
+    if total == 9:
         return "double" if (3 <= d <= 6 and can_double) else "hit"
-    if total == 10:                        # double vs 2-9, else hit
+    if total == 10:
         return "double" if (2 <= d <= 9 and can_double) else "hit"
-    if total == 11:                        # double vs 2-10 (not vs A under S17)
+    if total == 11:                        # not vs A under S17
         return "double" if (2 <= d <= 10 and can_double) else "hit"
-    if total == 12:                        # stand vs 4-6, else hit
+    if total == 12:
         return "stand" if 4 <= d <= 6 else "hit"
-    if total <= 16:                        # 13-16 -> stand vs 2-6, else hit
+    if total <= 16:
         return "stand" if 2 <= d <= 6 else "hit"
-    return "stand"                         # 17+ -> always stand
+    return "stand"
 
 class Shoe :
     def __init__(self, num_decks=6):
@@ -181,7 +167,7 @@ def play_hand(shoe):
             "player_total": hand_value(player_hand),
             "dealer_total": hand_value(dealer_hand)
         }
-    
+
     player_total = hand_value(player_hand)
     dealer_total = hand_value(dealer_hand)
 
@@ -204,8 +190,8 @@ def run_simulation(num_hands=10000, num_decks=6):
     shoe = Shoe(num_decks)
     results = {"win": 0, "lose": 0, "push": 0, "blackjack": 0}
 
-    for i in range(num_hands):
-        if len(shoe.cards) < 20:
+    for _ in range(num_hands):
+        if len(shoe.cards) < 20:  # reshuffle when nearly exhausted
             shoe = Shoe(num_decks)
         outcome = play_hand(shoe)
         results[outcome["result"]] += 1

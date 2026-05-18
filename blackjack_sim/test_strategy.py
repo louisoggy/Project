@@ -8,9 +8,6 @@ def C(rank, suit='Spades'):
     return Card(suit, rank)
 
 cases = [
-    # (description, hand, dealer_upcard, expected_action, can_double, can_split)
-
-    # --- PAIRS ---
     ("A,A vs 5",        [C('A'), C('A')],  C('5'),  "split",   True, True),
     ("A,A vs 10",       [C('A'), C('A')],  C('10'), "split",   True, True),
     ("10,10 vs 6",      [C('10'), C('K')], C('6'),  "stand",   True, True),
@@ -32,7 +29,6 @@ cases = [
     ("2,2 vs 8",        [C('2'), C('2')],  C('8'),  "hit",     True, True),
     ("J,Q vs 6",        [C('J'), C('Q')],  C('6'),  "stand",   True, True),
 
-    # --- SOFT ---
     ("A,2 vs 5",        [C('A'), C('2')],  C('5'),  "double",  True, True),
     ("A,2 vs 4",        [C('A'), C('2')],  C('4'),  "hit",     True, True),
     ("A,4 vs 4",        [C('A'), C('4')],  C('4'),  "double",  True, True),
@@ -47,7 +43,6 @@ cases = [
     ("A,8 vs 6",        [C('A'), C('8')],  C('6'),  "stand",   True, True),
     ("A,9 vs 6",        [C('A'), C('9')],  C('6'),  "stand",   True, True),
 
-    # --- HARD ---
     ("5+2 vs 6",        [C('5'), C('2')],  C('6'),  "hit",     True, True),
     ("4+5 vs 3",        [C('4'), C('5')],  C('3'),  "double",  True, True),
     ("4+5 vs 2",        [C('4'), C('5')],  C('2'),  "hit",     True, True),
@@ -63,7 +58,6 @@ cases = [
     ("10+6 vs 10",      [C('10'), C('6')], C('10'), "hit",     True, True),
     ("10+7 vs A",       [C('10'), C('7')], C('A'),  "stand",   True, True),
 
-    # --- FLAG BEHAVIOUR ---
     ("A,A vs 5 no-split",  [C('A'), C('A')], C('5'),  "hit",   True, False),
     ("8,8 vs 5 no-split",  [C('8'), C('8')], C('5'),  "stand", True, False),
     ("9 vs 3 no-double",   [C('4'), C('5')], C('3'),  "hit",   False, True),
