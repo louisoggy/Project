@@ -43,3 +43,35 @@ Three focus points:
 Differentiator: most studies report EV under perfect play and infinite bankroll.
 This project additionally quantifies degradation under realistic error and survival
 under finite bankroll, producing a more complete picture relevant to real play.
+
+Entry #6
+
+Expanded basic_strategy() to: hit, stand, double, or split.
+
+Signature changed to basic_strategy(player_hand, dealer_upcard,
+can_double=True, can_split=True). The can_double and can_split flags
+let callers disable actions that aren't legal in context (e.g.
+can_double=False after a hit, can_split=False on a non-pair or after
+the resplit limit is reached).
+
+Structured in three layers, evaluated in priority order:
+pairs, soft totals, hard totals. Matches standard published
+basic strategy for the locked rule set (S17, DAS, double-on-any-two,
+3:2 blackjack).
+
+Wrote test_basic.py with 52 cases: all 10 pair rules with
+representative dealer upcards, all soft totals from soft 13 through
+soft 19, hard totals across all key decision boundaries (hard 9-12,
+13-16, 17), and edge cases involving the can_double / can_split flags.
+
+Initial test run: 51/52 passed. One failure on soft 18 vs dealer 3
+with can_double=False. Function fell back to hit instead of stand.
+Cause: the can_double=False branch for soft 18 only mapped to stand
+for upcards 2, 7, 8. Upcards 3-6 incorrectly fell through to hit.
+This bug would have mattered after splits, where doubling becomes
+unavailable on the new hand and soft 18 vs 3-6 is a recurring case.
+Fixed so the can_double=False fallback for soft 18 vs 3-6 returns
+stand. After fix: 52/52 passed.
+
+play_hand still uses the two argument form,
+ updating play_hand is the next step.
