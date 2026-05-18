@@ -22,3 +22,24 @@ Entry #4
 Implemented basic strategy (hit/stand only) in basic_strategy().
 Player now decisions based on hand total and dealer upcard, with soft hands handled separately.
 Replaces the old hit-below-17 rule in play_hand.
+
+Entry #5
+
+Decided on a project scope and novel contribution
+
+Framework: a configurable Monte Carlo simulator where rule set, counting
+system, betting policy, player error rate, and bankroll are pluggable.
+
+Three counting systems compared: Hi-Lo, KO, Zen.
+
+Three focus points:
+1. Standard comparison - EV, variance, win rate under perfect play,
+   infinite bankroll.
+2. Robustness to error - same three systems with random count perturbation
+    at different error rates. EV degradation under realistic imperfect play.
+3. Risk of ruin - same three systems, finite starting bankrolls, fixed
+   bet units. Probability of going broke within different number of hands.
+
+Differentiator: most studies report EV under perfect play and infinite bankroll.
+This project additionally quantifies degradation under realistic error and survival
+under finite bankroll, producing a more complete picture relevant to real play.
