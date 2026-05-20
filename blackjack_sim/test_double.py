@@ -12,11 +12,11 @@ total_played = 0
 for _ in range(10000):
     if len(shoe.cards) < 20:
         shoe = Shoe(6)
-    out = play_hand(shoe)
+    outcomes = play_hand(shoe)
     total_played += 1
-    if out["bet"] == 2.0:
+    if any(o["bet"] == 2.0 for o in outcomes):
         doubled += 1
-    if out["result"] == "blackjack":
+    if any(o["result"] == "blackjack" for o in outcomes):
         naturals += 1
 
 print(f"Played:   {total_played}")

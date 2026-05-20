@@ -137,73 +137,151 @@ def play_hand(shoe):
             result = "blackjack"
         else:
             result = "lose"
-        return {
+        return [{
             "result": result,
             "bet": bet,
             "player_hand": player_hand,
             "dealer_hand": dealer_hand,
             "player_total": hand_value(player_hand),
             "dealer_total": hand_value(dealer_hand)
-        }
+        }]
 
     dealer_upcard = dealer_hand[0]
-    doubled = False
 
-    while True:
-        can_double = len(player_hand) == 2 and not doubled
-        action = basic_strategy(player_hand, dealer_upcard, can_double=can_double, can_split=False)
+    is_pair = _card_rank_value(player_hand[0]) == _card_rank_value(player_hand[1])
+    first_action = basic_strategy(player_hand, dealer_upcard, can_double=True, can_split=is_pair)
 
-        if action == "hit":
-            player_hand.append(shoe.deal_card())
-        elif action == "double":
-            bet = 2.0
-            doubled = True
-            player_hand.append(shoe.deal_card())
-            break
-        else:  # "stand" or "split" (split treated as stand until implemented)
-            break
+    if first_action != "split":
+        doubled = False
+        while True:
+            can_double = len(player_hand) == 2 and not doubled
+            action = basic_strategy(player_hand, dealer_upcard, can_double=can_double, can_split=False)
+            if action == "hit":
+                player_hand.append(shoe.deal_card())
+            elif action == "double":
+                bet = 2.0
+                doubled = True
+                player_hand.append(shoe.deal_card())
+                break
+            else:
+                break
 
-    if hand_value(player_hand) > 21:
-        return {
-            "result": "lose",
+        if hand_value(player_hand) > 21:
+            return [{
+                "result": "lose",
+                "bet": bet,
+                "player_hand": player_hand,
+                "dealer_hand": dealer_hand,
+                "player_total": hand_value(player_hand),
+                "dealer_total": hand_value(dealer_hand)
+            }]
+
+        while hand_value(dealer_hand) < 17:
+            dealer_hand.append(shoe.deal_card())
+
+        if hand_value(dealer_hand) > 21:
+            return [{
+                "result": "win",
+                "bet": bet,
+                "player_hand": player_hand,
+                "dealer_hand": dealer_hand,
+                "player_total": hand_value(player_hand),
+                "dealer_total": hand_value(dealer_hand)
+            }]
+
+        player_total = hand_value(player_hand)
+        dealer_total = hand_value(dealer_hand)
+
+        if player_total > dealer_total:
+            result = "win"
+        elif player_total < dealer_total:
+            result = "lose"
+        else:
+            result = "push"
+
+        return [{
+            "result": result,
             "bet": bet,
             "player_hand": player_hand,
             "dealer_hand": dealer_hand,
-            "player_total": hand_value(player_hand),
-            "dealer_total": hand_value(dealer_hand)
-        }
+            "player_total": player_total,
+            "dealer_total": dealer_total
+        }]
 
+    # Splitting path
+    is_ace_split = player_hand[0].rank == 'A'
+    total_hands = 2  # tracks running count; cap is 4 hands
+
+    # Each entry: (cards, bet, is_split_ace)
+    pending = [
+        ([player_hand[0], shoe.deal_card()], 1.0, is_ace_split),
+        ([player_hand[1], shoe.deal_card()], 1.0, is_ace_split),
+    ]
+    finished = []
+
+    while pending:
+        hand, hand_bet, split_ace = pending.pop(0)
+
+        if split_ace:
+            # split aces receive exactly one card and are done; no hit, double, or resplit
+            finished.append((hand, hand_bet))
+            continue
+
+        if total_hands < 4:
+            act = basic_strategy(hand, dealer_upcard, can_double=True, can_split=True)
+            if act == "split":
+                is_new_ace = hand[0].rank == 'A'
+                total_hands += 1
+                pending.append(([hand[0], shoe.deal_card()], hand_bet, is_new_ace))
+                pending.append(([hand[1], shoe.deal_card()], hand_bet, is_new_ace))
+                continue
+
+        doubled = False
+        while True:
+            can_double = len(hand) == 2 and not doubled
+            act = basic_strategy(hand, dealer_upcard, can_double=can_double, can_split=False)
+            if act == "hit":
+                hand.append(shoe.deal_card())
+            elif act == "double":
+                hand_bet = 2.0
+                doubled = True
+                hand.append(shoe.deal_card())
+                break
+            else:
+                break
+
+        finished.append((hand, hand_bet))
+
+    # Dealer plays once against all finished player hands
     while hand_value(dealer_hand) < 17:
         dealer_hand.append(shoe.deal_card())
 
-    if hand_value(dealer_hand) > 21:
-        return {
-            "result": "win",
-            "bet": bet,
-            "player_hand": player_hand,
-            "dealer_hand": dealer_hand,
-            "player_total": hand_value(player_hand),
-            "dealer_total": hand_value(dealer_hand)
-        }
-
-    player_total = hand_value(player_hand)
     dealer_total = hand_value(dealer_hand)
+    outcomes = []
 
-    if player_total > dealer_total:
-        result = "win"
-    elif player_total < dealer_total:
-        result = "lose"
-    else:
-        result = "push"
+    for hand, hand_bet in finished:
+        player_total = hand_value(hand)
+        if player_total > 21:
+            result = "lose"
+        elif dealer_total > 21:
+            result = "win"
+        elif player_total > dealer_total:
+            result = "win"
+        elif player_total < dealer_total:
+            result = "lose"
+        else:
+            result = "push"
 
-    return {
-        "result": result,
-        "bet": bet,
-        "player_hand": player_hand,
-        "dealer_hand": dealer_hand,
-        "player_total": player_total,
-        "dealer_total": dealer_total
-    }
+        outcomes.append({
+            "result": result,
+            "bet": hand_bet,
+            "player_hand": hand,
+            "dealer_hand": dealer_hand,
+            "player_total": player_total,
+            "dealer_total": dealer_total
+        })
+
+    return outcomes
 
 def run_simulation(num_hands=10000, num_decks=6):
     shoe = Shoe(num_decks)
@@ -212,8 +290,8 @@ def run_simulation(num_hands=10000, num_decks=6):
     for _ in range(num_hands):
         if len(shoe.cards) < 20:  # reshuffle when nearly exhausted
             shoe = Shoe(num_decks)
-        outcome = play_hand(shoe)
-        results[outcome["result"]] += 1
+        for outcome in play_hand(shoe):
+            results[outcome["result"]] += 1
 
     return results
 

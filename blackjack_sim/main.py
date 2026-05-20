@@ -32,11 +32,16 @@ def show_results(results, num_hands):
 
 def watch_hand(num_decks):
     shoe = Shoe(num_decks)
-    hand = play_hand(shoe)
+    outcomes = play_hand(shoe)
     print("\n--- Hand ---")
-    print(f"  Player: {', '.join(str(c) for c in hand['player_hand'])} = {hand['player_total']}")
-    print(f"  Dealer: {', '.join(str(c) for c in hand['dealer_hand'])} = {hand['dealer_total']}")
-    print(f"  Result: {hand['result'].upper()}")
+    first = outcomes[0]
+    print(f"  Dealer: {', '.join(str(c) for c in first['dealer_hand'])} = {first['dealer_total']}")
+    sep()
+    for i, o in enumerate(outcomes):
+        label = f"  Hand {i + 1}: " if len(outcomes) > 1 else "  Player: "
+        bet_note = f"  (bet: {o['bet']:.0f})" if o['bet'] != 1.0 else ""
+        print(f"{label}{', '.join(str(c) for c in o['player_hand'])} = {o['player_total']}{bet_note}")
+        print(f"  Result: {o['result'].upper()}")
 
 def configure_menu(num_hands, num_decks):
     print(f"\nCurrent settings:")
