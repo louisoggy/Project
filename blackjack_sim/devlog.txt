@@ -74,4 +74,37 @@ Fixed so the can_double=False fallback for soft 18 vs 3-6 returns
 stand. After fix: 52/52 passed.
 
 play_hand still uses the two argument form,
- updating play_hand is the next step.
+updating play_hand is the next step.
+
+Entry #7
+Added doubling into play_hand. Added a bet field defaults to 1.0,
+becomes 2.0 if the player doubled so callers can track wagered units later.
+Player loop now passes explicit can_double and can_split flags.
+can_double is True only on the first decision exactly two cards, no double yet.
+can_split is hard-coded False for now splits get their own step.
+
+If basic_strategy returns "split" right now it falls through to stand
+as a placeholder. will handle split properly in the next step.
+
+After doubling, exactly one card is dealt and the player stands.
+Natural blackjack still resolves at the top with bet=1.0 (can't
+double on a natural).
+
+Validation:
+  test_basic.py: 52/52 still pass.
+  test_double.py (new): 10,000-hand smoke test.
+    Doubled: 9.71% of hands - expected ~9% from sources.
+    Naturals: 4.68% - unchanged from earlier runs, confirms the
+    rest of the engine wasn't affected.
+  100,000-hand simulation through main.py:
+    Win 38.70%, Lose 48.35%, Push 8.49%, Blackjack 4.46%
+    Win rate 43.16% vs Lose rate 48.35%.
+    Compared to Entry #2 (hit-below-17): win went from ~41% to
+    43.16%, loss went from ~50% to 48.35%. Net margin roughly
+    halved, consistent with what proper basic strategy is
+    supposed to do. House edge will close further once splitting
+    is in.
+
+run_simulation still only counts results by the "result" field and
+ignores bet for now, intentional - bankroll tracking comes
+after counting systems.
