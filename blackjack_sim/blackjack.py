@@ -114,15 +114,21 @@ def basic_strategy(player_hand, dealer_upcard, can_double=True, can_split=True):
     return "stand"
 
 class Shoe :
-    def __init__(self, num_decks=6):
+    def __init__(self, num_decks=6, penetration=0.75):
+        self.penetration = max(0.01, min(0.99, penetration))
         self.cards = [Card(suit, rank) for suit in SUITS for rank in RANKS] * num_decks
         self.shuffle()
+        self.start_size = len(self.cards)
 
     def shuffle(self):
         random.shuffle(self.cards)
 
     def deal_card(self):
         return self.cards.pop()
+
+    def needs_reshuffle(self):
+        dealt = self.start_size - len(self.cards)
+        return dealt / self.start_size >= self.penetration
 
     @property
     def decks_remaining(self):
@@ -310,13 +316,39 @@ def play_hand(shoe):
 
     return outcomes
 
-def run_simulation(num_hands=10000, num_decks=6):
-    shoe = Shoe(num_decks)
+def run_counter(num_hands=100000, num_decks=6, system="hi_lo", penetration=0.75):
+    shoe = Shoe(num_decks, penetration)
+    counter = Counter(system)
+    results = {"win": 0, "lose": 0, "push": 0, "blackjack": 0}
+    true_counts = []
+
+    for _ in range(num_hands):
+        if shoe.needs_reshuffle():
+            shoe = Shoe(num_decks, penetration)
+            counter.reset()
+
+        true_counts.append(counter.true_count(shoe.decks_remaining))
+
+        outcomes = play_hand(shoe)
+
+        for card in outcomes[0]["dealer_hand"]:
+            counter.observe(card)
+        for outcome in outcomes:
+            for card in outcome["player_hand"]:
+                counter.observe(card)
+
+        for outcome in outcomes:
+            results[outcome["result"]] += 1
+
+    return {"results": results, "true_counts": true_counts}
+
+def run_simulation(num_hands=10000, num_decks=6, penetration=0.75):
+    shoe = Shoe(num_decks, penetration)
     results = {"win": 0, "lose": 0, "push": 0, "blackjack": 0}
 
     for _ in range(num_hands):
-        if len(shoe.cards) < 20:  # reshuffle when nearly exhausted
-            shoe = Shoe(num_decks)
+        if shoe.needs_reshuffle():
+            shoe = Shoe(num_decks, penetration)
         for outcome in play_hand(shoe):
             results[outcome["result"]] += 1
 
