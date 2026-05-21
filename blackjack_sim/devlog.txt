@@ -24,25 +24,22 @@ Player now decisions based on hand total and dealer upcard, with soft hands hand
 Replaces the old hit-below-17 rule in play_hand.
 
 Entry #5
+Decided on the project scope and novel contribution.
 
-Decided on a project scope and novel contribution
-
-Framework: a configurable Monte Carlo simulator where rule set, counting
-system, betting policy, player error rate, and bankroll are pluggable.
-
-Three counting systems compared: Hi-Lo, KO, Zen.
+Building a configurable Monte Carlo simulator where the rule set, counting
+system, betting policy, player error rate and bankroll are all pluggable.
+Comparing three counting systems: Hi-Lo, KO, Zen.
 
 Three focus points:
-1. Standard comparison - EV, variance, win rate under perfect play,
+1. Standard comparison, EV, variance and win rate under perfect play and
    infinite bankroll.
-2. Robustness to error - same three systems with random count perturbation
-    at different error rates. EV degradation under realistic imperfect play.
-3. Risk of ruin - same three systems, finite starting bankrolls, fixed
-   bet units. Probability of going broke within different number of hands.
+2. Robustness to error, same three systems with random count perturbation
+   at different error rates, measuring EV degradation under imperfect play.
+3. Risk of ruin, same three systems with finite bankrolls and fixed bet
+   units, measuring probability of going broke over a number of hands.
 
-Differentiator: most studies report EV under perfect play and infinite bankroll.
-This project additionally quantifies degradation under realistic error and survival
-under finite bankroll, producing a more complete picture relevant to real play.
+Majority of similar projects / studies only report EV under perfect play and infinite bankroll.
+Will also look at degradation under error and survival under bankroll, closer to real play.
 
 Entry #6
 
@@ -90,21 +87,50 @@ After doubling, exactly one card is dealt and the player stands.
 Natural blackjack still resolves at the top with bet=1.0 (can't
 double on a natural).
 
-Validation:
-  test_basic.py: 52/52 still pass.
-  test_double.py (new): 10,000-hand smoke test.
-    Doubled: 9.71% of hands - expected ~9% from sources.
-    Naturals: 4.68% - unchanged from earlier runs, confirms the
-    rest of the engine wasn't affected.
-  100,000-hand simulation through main.py:
-    Win 38.70%, Lose 48.35%, Push 8.49%, Blackjack 4.46%
-    Win rate 43.16% vs Lose rate 48.35%.
-    Compared to Entry #2 (hit-below-17): win went from ~41% to
-    43.16%, loss went from ~50% to 48.35%. Net margin roughly
-    halved, consistent with what proper basic strategy is
-    supposed to do. House edge will close further once splitting
-    is in.
+test_basic.py: 52/52 still pass.
+test_double.py: 10,000-hand smoke test.
+Doubled: 9.71% of hands - expected ~9%
+Naturals: 4.68% - unchanged
+100,000-hand simulation through main.py:
+Win 38.70%, Lose 48.35%, Push 8.49%, Blackjack 4.46%
+Win rate 43.16% vs Lose rate 48.35%.
+Compared to Entry #2: win went from ~41% to
+43.16%, loss went from ~50% to 48.35%.
+House edge close further once splitting added
 
 run_simulation still only counts results by the "result" field and
 ignores bet for now, intentional - bankroll tracking comes
 after counting systems.
+
+Entry #8
+Added splitting. play_hand now returns a list of outcome
+dictionaries instead of one, split makes multiple hands. 
+Normal hand returns list of 1, split returns 2 to 4.
+
+Resplit allowed up to 4 hands. Split aces get one card each then stop.
+Double after split allowed on non ace hands. Dealer plays once at the end,
+all player hands compared to it.
+Split ace 21 counts as a normal win not a 3:2 blackjack.
+run_simulation updated to count each sub hand.
+
+test_split.py: split rate around 2.4 to 2.6%, max hands capped at 4,
+blackjack ~4.5% so split ace 21 not miscounted. 
+House edge over 500k hands was 0.36%, sits just under expected.
+
+fixed watch a hand in main.py to show split hands separate.
+
+Entry #9
+Added the card counting framework, built modular so KO and Zen can be
+added later without changing other code.
+
+COUNT_SYSTEMS dict maps a system name to a rank to value mapping,
+only hi_lo for now (+1 on 2 to 6, 0 on 7 to 9, -1 on 10/J/Q/K/A)
+Added decks_remaining property to shoe.
+New Counter class holds a running count, observe(card) updates it,
+true_count(decks_remaining) divides by decks left (clamped to min 0.5 so a near empty shoe doesn't blow up). reset()
+zeroes it.
+
+Not in play_hand yet, isolated to test
+test_counter.py: full shoe sums to exactly 0 for 1, 2, 6, 8 deck shoes
+(the balanced property confirms the mapping).
+All ranks map right, true count division correct, reset and unknown system handling both work.

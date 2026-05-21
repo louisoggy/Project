@@ -2,6 +2,14 @@ import random
 RANKS = ['2', '3', '4', '5', '6', '7', '8', '9', '10', 'J', 'Q', 'K', 'A']
 SUITS = ['Hearts', 'Diamonds', 'Clubs', 'Spades']
 
+COUNT_SYSTEMS = {
+    "hi_lo": {
+        '2': 1, '3': 1, '4': 1, '5': 1, '6': 1,
+        '7': 0, '8': 0, '9': 0,
+        '10': -1, 'J': -1, 'Q': -1, 'K': -1, 'A': -1,
+    },
+}
+
 class Card :
     def __init__(self, suit, rank):
         self.suit = suit
@@ -115,6 +123,25 @@ class Shoe :
 
     def deal_card(self):
         return self.cards.pop()
+
+    @property
+    def decks_remaining(self):
+        return len(self.cards) / 52.0
+
+class Counter:
+    def __init__(self, system="hi_lo"):
+        self._values = COUNT_SYSTEMS[system]
+        self.running_count = 0
+
+    def observe(self, card):
+        self.running_count += self._values[card.rank]
+
+    def true_count(self, decks_remaining):
+        dr = max(decks_remaining, 0.5)
+        return self.running_count / dr
+
+    def reset(self):
+        self.running_count = 0
 
 def play_hand(shoe):
     player_hand = [shoe.deal_card()]
