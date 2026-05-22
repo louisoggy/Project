@@ -4,9 +4,12 @@ SUITS = ['Hearts', 'Diamonds', 'Clubs', 'Spades']
 
 COUNT_SYSTEMS = {
     "hi_lo": {
-        '2': 1, '3': 1, '4': 1, '5': 1, '6': 1,
-        '7': 0, '8': 0, '9': 0,
-        '10': -1, 'J': -1, 'Q': -1, 'K': -1, 'A': -1,
+        "values": {
+            '2': 1, '3': 1, '4': 1, '5': 1, '6': 1,
+            '7': 0, '8': 0, '9': 0,
+            '10': -1, 'J': -1, 'Q': -1, 'K': -1, 'A': -1,
+        },
+        "balanced": True,
     },
 }
 
@@ -136,7 +139,9 @@ class Shoe :
 
 class Counter:
     def __init__(self, system="hi_lo"):
-        self._values = COUNT_SYSTEMS[system]
+        _system = COUNT_SYSTEMS[system]
+        self._values = _system["values"]
+        self.balanced = _system["balanced"]
         self.running_count = 0
 
     def observe(self, card):
