@@ -189,4 +189,4 @@ and Zen without cramming everything into one change.
 Entry #13
 Added Zen count.
 Slotted into the existing structure
-full deck sums to 0,checked values all correct.
+full deck sums to 0, checked values all correct.

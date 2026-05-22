@@ -19,6 +19,14 @@ COUNT_SYSTEMS = {
         },
         "balanced": True,
     },
+    "ko": {
+        "values": {
+            '2': 1, '3': 1, '4': 1, '5': 1, '6': 1, '7': 1,
+            '8': 0, '9': 0,
+            '10': -1, 'J': -1, 'Q': -1, 'K': -1, 'A': -1,
+        },
+        "balanced": False,
+    },
 }
 
 class Card :
@@ -146,11 +154,12 @@ class Shoe :
         return len(self.cards) / 52.0
 
 class Counter:
-    def __init__(self, system="hi_lo"):
+    def __init__(self, system="hi_lo", num_decks=1):
         _system = COUNT_SYSTEMS[system]
         self._values = _system["values"]
         self.balanced = _system["balanced"]
-        self.running_count = 0
+        self.initial_count = 0 if self.balanced else -4 * (num_decks - 1)
+        self.running_count = self.initial_count
 
     def observe(self, card):
         self.running_count += self._values[card.rank]
@@ -160,7 +169,7 @@ class Counter:
         return self.running_count / dr
 
     def reset(self):
-        self.running_count = 0
+        self.running_count = self.initial_count
 
 def play_hand(shoe):
     player_hand = [shoe.deal_card()]
