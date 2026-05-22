@@ -1,7 +1,7 @@
 import sys, os
 sys.path.insert(0, os.path.dirname(__file__))
 
-from blackjack import Counter, Card, RANKS, SUITS
+from blackjack import Counter, Card, RANKS, SUITS, ko_bet_ramp
 
 # KO is unbalanced, one full deck adds +4 to the running count
 c = Counter("ko", num_decks=1)
@@ -29,4 +29,13 @@ print()
 c6.reset()
 print("after reset, 6 decks:", c6.running_count)
 
-# 7 is +1 in KO, the card that makes it un
+# 7 is +1 in KO, the card that makes it unbalanced
+c7 = Counter("ko", num_decks=1)
+c7.running_count = 0
+c7.observe(Card('Spades', '7'))
+print("7 maps to:", c7.running_count)
+print()
+
+# KO 6-deck bet ramp: key count -4 (min bet below here), pivot +4 (max bet at/above)
+for rc in range(-8, 9):
+    print(f"running count {rc:>3} -> bet {ko_bet_ramp(rc, 6)}")

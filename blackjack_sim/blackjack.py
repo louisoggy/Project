@@ -168,6 +168,11 @@ class Counter:
         dr = max(decks_remaining, 0.5)
         return self.running_count / dr
 
+    def betting_count(self, decks_remaining):
+        if self.balanced:
+            return self.true_count(decks_remaining)
+        return self.running_count
+
     def reset(self):
         self.running_count = self.initial_count
 
@@ -351,13 +356,29 @@ def bet_ramp(true_count):
     else:
         return 8
 
+def ko_bet_ramp(running_count, _num_decks=6):
+    # Thresholds anchored to KO's key count (-4) and pivot (+4) per
+    # Vancura & Fuchs, Knock-Out Blackjack. num_decks reserved for
+    # future calibration; thresholds are stable across standard shoe sizes.
+    rc = int(running_count)
+    if rc <= -1:
+        return 1
+    elif rc <= 1:
+        return 2
+    elif rc == 2:
+        return 4
+    elif rc == 3:
+        return 6
+    else:
+        return 8
+
 def run_counter(num_hands=100000, num_decks=6, system="hi_lo", penetration=0.75,
                 betting_policy=None):
     if betting_policy is None:
         betting_policy = bet_ramp
 
     shoe = Shoe(num_decks, penetration)
-    counter = Counter(system)
+    counter = Counter(system, num_decks)
     results = {"win": 0, "lose": 0, "push": 0, "blackjack": 0}
     true_counts = []
     total_net = 0.0
@@ -368,9 +389,13 @@ def run_counter(num_hands=100000, num_decks=6, system="hi_lo", penetration=0.75,
             shoe = Shoe(num_decks, penetration)
             counter.reset()
 
-        tc = counter.true_count(shoe.decks_remaining)
+        if counter.balanced:
+            tc = counter.betting_count(shoe.decks_remaining)
+            base_bet = betting_policy(tc)
+        else:
+            tc = counter.running_count
+            base_bet = ko_bet_ramp(tc, num_decks)
         true_counts.append(tc)
-        base_bet = betting_policy(tc)
 
         outcomes = play_hand(shoe)
 
