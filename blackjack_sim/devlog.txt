@@ -190,3 +190,59 @@ Entry #13
 Added Zen count.
 Slotted into the existing structure
 full deck sums to 0, checked values all correct.
+
+Entry #14
+Added the KO count as the third system.
+KO is unbalanced, the only value
+difference from Hi-Lo is that 7 is +1 instead of 0,
+which makes the system sum to +4 per deck rather than 0.
+
+Because it's unbalanced it needs a deck dependent starting offset so the
+thresholds line up across shoe sizes: initial running count = -4*(num_decks-1),
+so 1 deck starts at 0 and 6 decks start at -20.
+Added a num_decks param to Counter, store the initial count,
+reset() now restores that offset instead of 0.
+
+Not wired into betting yet, KO bets off the running count not a true count
+so run_counter needs a small change next.
+
+Entry #15
+Wired the per-system bet ramps into run_counter and got all three systems
+comparing fairly.
+
+run_counter now branches on whether the system is balanced.
+Hi-Lo and Zen bet off the true count through bet_ramp like before.
+KO bets off its raw running count through ko_bet_ramp,
+no division by decks remaining, with the ramp anchored to KO's key count (-4)
+and pivot (+4).
+
+Before calibration KO was a mess: feeding its running count into the
+true count ramp made it bet near max almost every hand (avg bet 6.64) and it
+came out at -0.28% edge. After giving KO its own ramp the avg bet dropped to
+1.74, in line with the other two, and the edge went positive.
+
+Ranking matches theory: all three beat the house, Zen best (multi-level,
+highest correlation), the simpler systems trail. Single 500k runs so the
+exact numbers have noise, hi_lo and ko are close enough to swap on another
+run, but the shape is right.
+
+All three core counting systems now implemented.
+
+Entry #16
+Added a player error parameter to run_counter for the robustness experiment.
+With probability error_rate the player misreads the count by +/-1 on a given
+hand, applied to a local copy of the count used for the bet decision only.
+The real running count is never touched, so the error is a transient misread
+not a permanent corruption. error_rate 0 reproduces the perfect-play results
+exactly. Only bet sizing is affected, basic strategy play is unchanged.
+
+Then started a new file experiments.py for experiment tooling, keeping it
+separate from the engine. First thing in it is run_trials, a harness that
+repeats a run_counter config several times and returns the mean edge plus
+the standard error (sample stdev / sqrt(trials)), along with the raw per-run
+edges.
+
+Why I needed this: bet-spread edges are really noisy. Five runs of hi_lo at
+identical settings gave edges from +0.015 to +0.856%, mean +0.343% with a
+standard error of 0.151%. A single run tells you almost nothing, so every
+experiment data point needs to be a mean over trials with an error bar.

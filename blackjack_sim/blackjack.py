@@ -373,7 +373,7 @@ def ko_bet_ramp(running_count, _num_decks=6):
         return 8
 
 def run_counter(num_hands=100000, num_decks=6, system="hi_lo", penetration=0.75,
-                betting_policy=None):
+                betting_policy=None, error_rate=0.0):
     if betting_policy is None:
         betting_policy = bet_ramp
 
@@ -391,11 +391,17 @@ def run_counter(num_hands=100000, num_decks=6, system="hi_lo", penetration=0.75,
 
         if counter.balanced:
             tc = counter.betting_count(shoe.decks_remaining)
-            base_bet = betting_policy(tc)
         else:
             tc = counter.running_count
-            base_bet = ko_bet_ramp(tc, num_decks)
         true_counts.append(tc)
+
+        # transient misread: perturb a local copy, never the live count
+        bet_tc = tc + random.choice((-1, 1)) if error_rate and random.random() < error_rate else tc
+
+        if counter.balanced:
+            base_bet = betting_policy(bet_tc)
+        else:
+            base_bet = ko_bet_ramp(bet_tc, num_decks)
 
         outcomes = play_hand(shoe)
 
