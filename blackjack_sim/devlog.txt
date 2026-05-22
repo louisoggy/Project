@@ -134,3 +134,47 @@ Not in play_hand yet, isolated to test
 test_counter.py: full shoe sums to exactly 0 for 1, 2, 6, 8 deck shoes
 (the balanced property confirms the mapping).
 All ranks map right, true count division correct, reset and unknown system handling both work.
+
+Entry #10
+Wired the Counter into a new simulation function run_counter,
+added deck penetration.
+
+run_counter creates one Shoe and one Counter,
+records the true count before each hand (what the player would bet on),
+plays the hand, then has the Counter observe every card dealt that hand.
+Dealer hand observed once, each split hand's player cards observed.
+Counter resets on reshuffle.
+Returns the outcome counts plus the list of true counts seen.
+
+Penetration: added a penetration param to Shoe (default 0.75) and a needs_reshuffle() method.
+Reshuffle now triggers when 75% of the shoe has been dealt,
+instead of dealing down to the last 20 cards.
+run_simulation and run_counter both use needs_reshuffle() now.
+
+check via count_distribution.py: mean true count ~0, curve centred on 0,
+outcomes unchanged at 39/48/8.5/4.4 so gameplay wasn't affected.
+
+Entry #11
+Added bet spreading tied to the true count,
+this is the step where counting starts producing an actual profit.
+
+New bet_ramp(true_count) function returns the base bet in units:
+1 unit at true count 1 or below, 2 at TC 2, 4 at TC 3, 6 at TC 4, 8 at TC 5+ (capped).
+Floors the true count for the lookup, negatives bet the minimum.
+run_counter takes a betting_policy param defaulting to bet_ramp so the ramp
+can be swapped later.
+
+run_counter now computes a base bet before each hand,
+tracks net profit and total wagered (scaling by outcome bet for doubles and splits,
+blackjack paid 3:2 on the base bet), and returns total_net, total_wagered,
+ev_per_hand and edge_pct alongside the old keys.
+
+test_bet.py over 1,000,000 hands, runs twice: edge came out +0.32,
+so a small but real and stable player advantage.
+Average bet 1.63 units. The edge is positive,
+counting plus bet spread beats the house.
+on the low side which fits the conservative ramp and 75% penetration,
+both could be pushed harder for more edge at the cost of more variance,
+what the risk of ruin experiment will look at.
+
+bet_ramp spot checked across true counts

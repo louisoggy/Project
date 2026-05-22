@@ -316,18 +316,39 @@ def play_hand(shoe):
 
     return outcomes
 
-def run_counter(num_hands=100000, num_decks=6, system="hi_lo", penetration=0.75):
+def bet_ramp(true_count):
+    tc = max(int(true_count), 0)
+    if tc <= 1:
+        return 1
+    elif tc == 2:
+        return 2
+    elif tc == 3:
+        return 4
+    elif tc == 4:
+        return 6
+    else:
+        return 8
+
+def run_counter(num_hands=100000, num_decks=6, system="hi_lo", penetration=0.75,
+                betting_policy=None):
+    if betting_policy is None:
+        betting_policy = bet_ramp
+
     shoe = Shoe(num_decks, penetration)
     counter = Counter(system)
     results = {"win": 0, "lose": 0, "push": 0, "blackjack": 0}
     true_counts = []
+    total_net = 0.0
+    total_wagered = 0.0
 
     for _ in range(num_hands):
         if shoe.needs_reshuffle():
             shoe = Shoe(num_decks, penetration)
             counter.reset()
 
-        true_counts.append(counter.true_count(shoe.decks_remaining))
+        tc = counter.true_count(shoe.decks_remaining)
+        true_counts.append(tc)
+        base_bet = betting_policy(tc)
 
         outcomes = play_hand(shoe)
 
@@ -339,8 +360,29 @@ def run_counter(num_hands=100000, num_decks=6, system="hi_lo", penetration=0.75)
 
         for outcome in outcomes:
             results[outcome["result"]] += 1
+            r = outcome["result"]
+            if r == "blackjack":
+                total_wagered += base_bet
+                total_net += 1.5 * base_bet
+            else:
+                wagered = base_bet * outcome["bet"]
+                total_wagered += wagered
+                if r == "win":
+                    total_net += wagered
+                elif r == "lose":
+                    total_net -= wagered
 
-    return {"results": results, "true_counts": true_counts}
+    ev_per_hand = total_net / num_hands
+    edge_pct = (total_net / total_wagered * 100) if total_wagered else 0.0
+
+    return {
+        "results": results,
+        "true_counts": true_counts,
+        "total_net": total_net,
+        "total_wagered": total_wagered,
+        "ev_per_hand": ev_per_hand,
+        "edge_pct": edge_pct,
+    }
 
 def run_simulation(num_hands=10000, num_decks=6, penetration=0.75):
     shoe = Shoe(num_decks, penetration)
