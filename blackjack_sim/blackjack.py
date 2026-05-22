@@ -11,6 +11,14 @@ COUNT_SYSTEMS = {
         },
         "balanced": True,
     },
+    "zen": {
+        "values": {
+            '2': 1, '3': 1, '4': 2, '5': 2, '6': 2, '7': 1,
+            '8': 0, '9': 0,
+            '10': -2, 'J': -2, 'Q': -2, 'K': -2, 'A': -1,
+        },
+        "balanced": True,
+    },
 }
 
 class Card :

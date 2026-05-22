@@ -185,3 +185,8 @@ instead of just a flat rank map.
 Counter reads both now. Only hi_lo so far, behaviour unchanged.
 Did this as its own step to make room for KO
 and Zen without cramming everything into one change.
+
+Entry #13
+Added Zen count.
+Slotted into the existing structure
+full deck sums to 0,checked values all correct.
