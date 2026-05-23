@@ -256,3 +256,11 @@ bet the ramp wants, they bet whatever they have left rather than stopping.
 Uses the same count, bet ramp and error logic as run_counter so the two stay consistent.
 Returns broke (bool), hands_played, final_bankroll and the config.
 Broke rate falls as bankroll rises, expected.
+
+Entry #18
+Added a save_csv helper to experiments.py.
+Takes a list of row dicts and a filename,
+writes them with csv.DictWriter into a results/ folder next to the script,
+header taken from the first row's keys.
+Error handling for empty list.
+prints a confirmation with the path and row count.
