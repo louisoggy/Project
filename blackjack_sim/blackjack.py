@@ -437,6 +437,75 @@ def run_counter(num_hands=100000, num_decks=6, system="hi_lo", penetration=0.75,
         "edge_pct": edge_pct,
     }
 
+def run_ruin(bankroll=200, max_hands=10000, num_decks=6, system="hi_lo",
+             error_rate=0.0):
+    shoe = Shoe(num_decks)
+    counter = Counter(system, num_decks)
+    bankroll_start = bankroll
+    broke = False
+    hands_played = 0
+
+    for _ in range(max_hands):
+        if bankroll <= 0:
+            broke = True
+            break
+
+        if shoe.needs_reshuffle():
+            shoe = Shoe(num_decks)
+            counter.reset()
+
+        # mirror run_counter's count selection
+        if counter.balanced:
+            tc = counter.betting_count(shoe.decks_remaining)
+        else:
+            tc = counter.running_count
+
+        # transient misread: perturb a local copy, never the live count
+        bet_tc = tc + random.choice((-1, 1)) if error_rate and random.random() < error_rate else tc
+
+        if counter.balanced:
+            desired_bet = bet_ramp(bet_tc)
+        else:
+            desired_bet = ko_bet_ramp(bet_tc, num_decks)
+
+        # all-in when bankroll is smaller than the desired bet
+        base_bet = min(desired_bet, bankroll)
+
+        outcomes = play_hand(shoe)
+        hands_played += 1
+
+        # observe cards the same way run_counter does
+        for card in outcomes[0]["dealer_hand"]:
+            counter.observe(card)
+        for outcome in outcomes:
+            for card in outcome["player_hand"]:
+                counter.observe(card)
+
+        # settle bankroll with the same payout rules as run_counter
+        for outcome in outcomes:
+            r = outcome["result"]
+            if r == "blackjack":
+                bankroll += 1.5 * base_bet
+            elif r == "win":
+                bankroll += base_bet * outcome["bet"]
+            elif r == "lose":
+                bankroll -= base_bet * outcome["bet"]
+            # push: no change
+
+        if bankroll <= 0:
+            broke = True
+            break
+
+    return {
+        "broke": broke,
+        "hands_played": hands_played,
+        "final_bankroll": bankroll,
+        "system": system,
+        "bankroll_start": bankroll_start,
+        "error_rate": error_rate,
+    }
+
+
 def run_simulation(num_hands=10000, num_decks=6, penetration=0.75):
     shoe = Shoe(num_decks, penetration)
     results = {"win": 0, "lose": 0, "push": 0, "blackjack": 0}

@@ -229,20 +229,30 @@ run, but the shape is right.
 All three core counting systems now implemented.
 
 Entry #16
-Added a player error parameter to run_counter for the robustness experiment.
-With probability error_rate the player misreads the count by +/-1 on a given
-hand, applied to a local copy of the count used for the bet decision only.
+Added a player error parameter to run_counter.
+With probability error_rate the player misreads the count by +/-1 on a given hand,
+applied to a local copy of the count used for the bet decision only.
 The real running count is never touched, so the error is a transient misread
-not a permanent corruption. error_rate 0 reproduces the perfect-play results
-exactly. Only bet sizing is affected, basic strategy play is unchanged.
+not a permanent corruption.
+error_rate 0 reproduces the perfect play results exactly.
+Only bet sizing is affected, basic strategy play is unchanged.
 
 Then started a new file experiments.py for experiment tooling, keeping it
 separate from the engine. First thing in it is run_trials, a harness that
 repeats a run_counter config several times and returns the mean edge plus
-the standard error (sample stdev / sqrt(trials)), along with the raw per-run
-edges.
+the standard error, along with the raw per run edges.
 
-Why I needed this: bet-spread edges are really noisy. Five runs of hi_lo at
-identical settings gave edges from +0.015 to +0.856%, mean +0.343% with a
-standard error of 0.151%. A single run tells you almost nothing, so every
-experiment data point needs to be a mean over trials with an error bar.
+Why: bet spread edges are really noisy,
+needs to be a mean over trials with an error bar
+
+Entry #17
+Added run_ruin for the risk of ruin experiment.
+Plays against a finite bankroll (measured in units) until either the bankroll hits 0,
+below, or a max hand limit is reached, and reports which happened.
+
+Ruin is defined as bankroll reaching 0 or below.
+While the bankroll is positive the player keeps going, and if it's positive but smaller than the
+bet the ramp wants, they bet whatever they have left rather than stopping.
+Uses the same count, bet ramp and error logic as run_counter so the two stay consistent.
+Returns broke (bool), hands_played, final_bankroll and the config.
+Broke rate falls as bankroll rises, expected.
