@@ -3,7 +3,7 @@ sys.path.insert(0, os.path.dirname(__file__))
 import csv
 import math
 import statistics
-from blackjack import run_counter
+from blackjack import run_counter, run_ruin
 
 def save_csv(rows, filename):
     if not rows:
@@ -103,7 +103,42 @@ def err_robustness_simulation(trials=20, num_hands=500000, num_decks=6):
     return rows
 
 
+def ruin_simulation(trials=200, bankrolls=(100, 200, 400, 800),
+                    max_hands=10000, num_decks=6):
+    rows = []
+
+    for system in ("hi_lo", "ko", "zen"):
+        for bankroll in bankrolls:
+            broke_count = 0
+            hands_totals = []
+
+            for _ in range(trials):
+                r = run_ruin(bankroll=bankroll, max_hands=max_hands,
+                             num_decks=num_decks, system=system, error_rate=0.0)
+                if r["broke"]:
+                    broke_count += 1
+                hands_totals.append(r["hands_played"])
+
+            row = {
+                "system":           system,
+                "bankroll":         bankroll,
+                "broke_rate":       broke_count / trials,
+                "avg_hands_played": statistics.mean(hands_totals),
+                "trials":           trials,
+                "max_hands":        max_hands,
+                "num_decks":        num_decks,
+            }
+            rows.append(row)
+            print(f"  {system:6s}  bankroll={bankroll:4d}  "
+                  f"broke={row['broke_rate']:.1%}  "
+                  f"avg_hands={row['avg_hands_played']:.0f}")
+
+    save_csv(rows, "ruin_simulation.csv")
+    return rows
+
+
 if __name__ == "__main__":
     # perfect_play_simulation()
-    print("Error robustness simulation: edge vs error rate (hi_lo / ko / zen)")
-    err_robustness_simulation()
+    # err_robustness_simulation()
+    print("Ruin simulation: risk of ruin by system and starting bankroll")
+    ruin_simulation()

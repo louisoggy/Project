@@ -272,13 +272,16 @@ loops the three systems through run_trials and saves a summary row each to resul
 
 Entry #20
 Built and ran err_robustness_simulation.
-Sweeps each system across error rates and records how the edge changes.
+Sweeps each system across error rates,
+where the error rate is the probability that on any given hand
+the player misreads the count by +1 or -1 when sizing their bet,
+records how the edge changes.
 
-First tried error rates 2/5/10/20% and saw little degradation.
+Tried error rates 2/5/10/20%, saw little degradation.
 pushed the sweep up to 0/2/10/25/50%. Even at 50% error, misreading the count
 on half of all hands, no downward trend in any system.
 
-Finding: bet sizing card counting is highly robust to small (+/-1) transient
+Bet sizing card counting is highly robust to small (+/-1) transient
 counting errors, even very frequent ones, and this holds across all three
 systems.
 The reason is the edge comes from the gross bet pattern not unit
@@ -286,3 +289,20 @@ precision, and the count sits near zero most of the time so a +/-1 slip
 usually doesn't change the bet tier, or only shifts it where you're betting
 the minimum anyway.
 Errors are independent per hand so they average out rather than compound.
+
+Entry #21
+Built and ran ruin_simulation.
+For each system and a range of starting bankrolls
+it runs run_ruin many times and records the broke rate and average hands survived.
+200 trials per combination, max 10k hands.
+
+Within each system broke rate falls as bankroll rises, as expected. The
+interesting part is across systems: at 400 units Zen goes broke 19% vs
+Hi-Lo's 6%, three times as often, even though Zen has the highest edge.
+Zen bets more aggressively so it drains a thin bankroll faster and busts before its edge pays off.
+avg_hands supports this, Zen survives fewer hands at small bankrolls.
+
+conclusion: the highest edge system is also the riskiest,
+so the best system depends on what you optimise for.
+Deep bankroll and chasing return: Zen.
+Constrained bankroll and survival matters: Hi-Lo, similar edge to KO with lower ruin risk than Zen.
