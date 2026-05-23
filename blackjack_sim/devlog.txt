@@ -264,3 +264,8 @@ writes them with csv.DictWriter into a results/ folder next to the script,
 header taken from the first row's keys.
 Error handling for empty list.
 prints a confirmation with the path and row count.
+
+Entry #19
+Built and ran the standard comparison of all three systems under perfect play.
+loops the three systems through run_trials and saves a summary row each to results/perfect_play_simulation.csv
+20 trials x 500k hands per system, 6 decks.

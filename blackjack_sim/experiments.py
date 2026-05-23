@@ -49,15 +49,32 @@ def run_trials(trials=10, num_hands=500000, num_decks=6, system="hi_lo",
         "edges": edges,
     }
 
-if __name__ == "__main__":
-    result = run_trials(trials=5, num_hands=200000, system="hi_lo", error_rate=0.0)
-    print(f"system:     {result['system']}")
-    print(f"mean_edge:  {result['mean_edge']:+.3f}%")
-    print(f"stderr:     {result['stderr_edge']:.3f}%")
-    print(f"raw edges:  {[f'{e:+.3f}' for e in result['edges']]}")
+def perfect_play_simulation(trials=20, num_hands=500000, num_decks=6):
+    rows = []
+    for system in ("hi_lo", "ko", "zen"):
+        r = run_trials(trials=trials, num_hands=num_hands,
+                       num_decks=num_decks, system=system, error_rate=0.0)
 
-    test_rows = [
-        {"system": "hi_lo", "mean_edge": 0.612, "trials": 5},
-        {"system": "ko",    "mean_edge": 0.588, "trials": 5},
-    ]
-    save_csv(test_rows, "test.csv")
+        edge_stdev = statistics.stdev(r["edges"]) if trials >= 2 else 0.0
+
+        row = {
+            "system":     system,
+            "mean_edge":  r["mean_edge"],
+            "stderr_edge": r["stderr_edge"],
+            "mean_ev":    r["mean_ev"],
+            "edge_stdev": edge_stdev,
+            "trials":     trials,
+            "num_hands":  num_hands,
+            "num_decks":  num_decks,
+        }
+        rows.append(row)
+        print(f"  {system:6s}  mean_edge={row['mean_edge']:+.3f}%  "
+              f"stderr={row['stderr_edge']:.3f}%  stdev={edge_stdev:.3f}%")
+
+    save_csv(rows, "perfect_play_simulation.csv")
+    return rows
+
+
+if __name__ == "__main__":
+    print("Perfect play simulation: system comparison (hi_lo / ko / zen)")
+    perfect_play_simulation()
