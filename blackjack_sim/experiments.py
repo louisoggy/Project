@@ -140,5 +140,4 @@ def ruin_simulation(trials=200, bankrolls=(100, 200, 400, 800),
 if __name__ == "__main__":
     # perfect_play_simulation()
     # err_robustness_simulation()
-    print("Ruin simulation: risk of ruin by system and starting bankroll")
-    ruin_simulation()
+    # ruin_simulation()

@@ -306,3 +306,12 @@ conclusion: the highest edge system is also the riskiest,
 so the best system depends on what you optimise for.
 Deep bankroll and chasing return: Zen.
 Constrained bankroll and survival matters: Hi-Lo, similar edge to KO with lower ruin risk than Zen.
+
+Entry #22
+Added plots.py to turn the experiment CSVs into figures.
+Reads the three results CSVs with pandas and plots with matplotlib.
+
+Three figures:
+  perfect_play_edge.png   bar chart of edge by system with stderr error bars
+  error_robustness.png    edge vs error rate, one line per system
+  risk_of_ruin.png        broke rate vs bankroll, one line per system
