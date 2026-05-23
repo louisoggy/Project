@@ -315,3 +315,7 @@ Three figures:
   perfect_play_edge.png   bar chart of edge by system with stderr error bars
   error_robustness.png    edge vs error rate, one line per system
   risk_of_ruin.png        broke rate vs bankroll, one line per system
+
+Entry #23
+Wired the experiments and plots into main menu.
+Engine, experiments and plotting now all launch from main.

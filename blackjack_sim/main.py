@@ -3,6 +3,8 @@ import os
 sys.path.insert(0, os.path.dirname(__file__))
 
 from blackjack import run_simulation, play_hand, Shoe
+from experiments import perfect_play_simulation, err_robustness_simulation, ruin_simulation
+from plots import generate_all
 
 DEFAULT_HANDS = 100000
 DEFAULT_DECKS = 6
@@ -16,7 +18,11 @@ def main_menu():
     print("  1. Run simulation")
     print("  2. Watch a hand")
     print("  3. Configure")
-    print("  4. Quit")
+    print("  4. Perfect play simulation")
+    print("  5. Error robustness simulation")
+    print("  6. Risk of ruin simulation")
+    print("  7. Generate plots")
+    print("  8. Quit")
     sep()
 
 def show_results(results, num_hands):
@@ -80,6 +86,21 @@ def main():
             num_hands, num_decks = configure_menu(num_hands, num_decks)
             print("  Settings updated.")
         elif choice == "4":
+            print("Running... this may take several minutes.")
+            print("Results will be saved to the results folder.")
+            perfect_play_simulation()
+        elif choice == "5":
+            print("Running... this may take several minutes.")
+            print("Results will be saved to the results folder.")
+            err_robustness_simulation()
+        elif choice == "6":
+            print("Running... this may take several minutes.")
+            print("Results will be saved to the results folder.")
+            ruin_simulation()
+        elif choice == "7":
+            generate_all()
+            print("Figures saved to the figures folder.")
+        elif choice == "8":
             print("Quit simulator")
             break
         else:
