@@ -75,6 +75,35 @@ def perfect_play_simulation(trials=20, num_hands=500000, num_decks=6):
     return rows
 
 
+def err_robustness_simulation(trials=20, num_hands=500000, num_decks=6):
+    error_rates = (0.0, 0.02, 0.10, 0.25, 0.50)
+    rows = []
+
+    for system in ("hi_lo", "ko", "zen"):
+        for error_rate in error_rates:
+            r = run_trials(trials=trials, num_hands=num_hands,
+                           num_decks=num_decks, system=system,
+                           error_rate=error_rate)
+
+            row = {
+                "system":      system,
+                "error_rate":  error_rate,
+                "mean_edge":   r["mean_edge"],
+                "stderr_edge": r["stderr_edge"],
+                "mean_ev":     r["mean_ev"],
+                "trials":      trials,
+                "num_hands":   num_hands,
+                "num_decks":   num_decks,
+            }
+            rows.append(row)
+            print(f"  {system:6s}  error={error_rate:.0%}  "
+                  f"mean_edge={row['mean_edge']:+.3f}%  stderr={row['stderr_edge']:.3f}%")
+
+    save_csv(rows, "err_robustness_simulation.csv")
+    return rows
+
+
 if __name__ == "__main__":
-    print("Perfect play simulation: system comparison (hi_lo / ko / zen)")
-    perfect_play_simulation()
+    # perfect_play_simulation()
+    print("Error robustness simulation: edge vs error rate (hi_lo / ko / zen)")
+    err_robustness_simulation()

@@ -269,3 +269,20 @@ Entry #19
 Built and ran the standard comparison of all three systems under perfect play.
 loops the three systems through run_trials and saves a summary row each to results/perfect_play_simulation.csv
 20 trials x 500k hands per system, 6 decks.
+
+Entry #20
+Built and ran err_robustness_simulation.
+Sweeps each system across error rates and records how the edge changes.
+
+First tried error rates 2/5/10/20% and saw little degradation.
+pushed the sweep up to 0/2/10/25/50%. Even at 50% error, misreading the count
+on half of all hands, no downward trend in any system.
+
+Finding: bet sizing card counting is highly robust to small (+/-1) transient
+counting errors, even very frequent ones, and this holds across all three
+systems.
+The reason is the edge comes from the gross bet pattern not unit
+precision, and the count sits near zero most of the time so a +/-1 slip
+usually doesn't change the bet tier, or only shifts it where you're betting
+the minimum anyway.
+Errors are independent per hand so they average out rather than compound.
