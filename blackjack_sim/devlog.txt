@@ -319,3 +319,14 @@ Three figures:
 Entry #23
 Wired the experiments and plots into main menu.
 Engine, experiments and plotting now all launch from main.
+
+Entry #24
+Made all options configurable from menu, 
+Each experiment now prompts for its parameters before running and remembers for session.
+Perfect play takes trials and hands.
+risk of ruin takes trials, bankrolls and max hands.
+error robustness takes trials, hands and the list of error rates.
+Pressing enter just uses defaults.
+
+Exposed error_rates as a parameter of err_robustness_simulation
+first, was hardcoded, now defaults to same sweep but can be passed.

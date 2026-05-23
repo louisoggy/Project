@@ -75,8 +75,8 @@ def perfect_play_simulation(trials=20, num_hands=500000, num_decks=6):
     return rows
 
 
-def err_robustness_simulation(trials=20, num_hands=500000, num_decks=6):
-    error_rates = (0.0, 0.02, 0.10, 0.25, 0.50)
+def err_robustness_simulation(trials=20, num_hands=500000, num_decks=6,
+                              error_rates=(0.0, 0.02, 0.10, 0.25, 0.50)):
     rows = []
 
     for system in ("hi_lo", "ko", "zen"):
@@ -135,10 +135,3 @@ def ruin_simulation(trials=200, bankrolls=(100, 200, 400, 800),
 
     save_csv(rows, "ruin_simulation.csv")
     return rows
-
-
-if __name__ == "__main__":
-    # perfect_play_simulation()
-    # err_robustness_simulation()
-    # ruin_simulation()
-    pass
