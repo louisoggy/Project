@@ -1,6 +1,6 @@
 # test_counter.py
 import sys, os
-sys.path.insert(0, os.path.dirname(__file__))
+sys.path.insert(0, os.path.dirname(os.path.dirname(__file__)))
 
 from blackjack import Shoe, Counter, Card, COUNT_SYSTEMS
 

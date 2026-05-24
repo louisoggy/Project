@@ -1,4 +1,5 @@
 import random
+
 RANKS = ['2', '3', '4', '5', '6', '7', '8', '9', '10', 'J', 'Q', 'K', 'A']
 SUITS = ['Hearts', 'Diamonds', 'Clubs', 'Spades']
 
@@ -468,7 +469,7 @@ def run_ruin(bankroll=200, max_hands=10000, num_decks=6, system="hi_lo",
         else:
             desired_bet = ko_bet_ramp(bet_tc, num_decks)
 
-        # all-in when bankroll is smaller than the desired bet
+        # all in when bankroll is smaller than the desired bet
         base_bet = min(desired_bet, bankroll)
 
         outcomes = play_hand(shoe)
