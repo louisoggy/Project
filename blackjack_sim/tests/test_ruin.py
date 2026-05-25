@@ -3,8 +3,6 @@ sys.path.insert(0, os.path.dirname(__file__))
 
 from blackjack import run_ruin
 
-# small bankroll should go broke often, large bankroll rarely.
-# run a batch of trials for each and report the broke rate.
 for bankroll in (50, 100, 200, 500):
     trials = 200
     broke = 0

@@ -65,8 +65,6 @@ cases = [
     ("A,7 vs 3 no-double", [C('A'), C('7')], C('3'),  "stand", False, True),
 ]
 
-print("Basic strategy tests:")
-print("-" * 60)
 passed = 0
 failed = 0
 for desc, hand, upcard, expected, cd, cs in cases:
@@ -78,5 +76,4 @@ for desc, hand, upcard, expected, cd, cs in cases:
         passed += 1
     else:
         failed += 1
-print("-" * 60)
 print(f"  {passed} passed, {failed} failed")
