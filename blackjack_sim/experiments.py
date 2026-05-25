@@ -5,6 +5,7 @@ import math
 import statistics
 from blackjack import run_counter, run_ruin
 
+# helper to save csv
 def save_csv(rows, filename):
     if not rows:
         print(f"save_csv: nothing to write for {filename}")
@@ -48,7 +49,8 @@ def run_trials(trials=10, num_hands=500000, num_decks=6, system="hi_lo",
         "mean_ev": statistics.mean(evs),
         "edges": edges,
     }
-
+# runs perfect version of simulation for each system
+# returns mean edge, standard error and standard deviation of edge across trials for each system
 def perfect_play_simulation(trials=20, num_hands=500000, num_decks=6):
     rows = []
     for system in ("hi_lo", "ko", "zen"):
@@ -74,7 +76,8 @@ def perfect_play_simulation(trials=20, num_hands=500000, num_decks=6):
     save_csv(rows, "perfect_play_simulation.csv")
     return rows
 
-
+# runs simulations with different error rates for each system to see how robust they are to misreads of the count
+# returns mean edge, standard error and standard deviation of edge across trials for each system and error
 def err_robustness_simulation(trials=20, num_hands=500000, num_decks=6,
                               error_rates=(0.0, 0.02, 0.10, 0.25, 0.50)):
     rows = []
@@ -102,7 +105,8 @@ def err_robustness_simulation(trials=20, num_hands=500000, num_decks=6,
     save_csv(rows, "err_robustness_simulation.csv")
     return rows
 
-
+# runs simulation with different bankrolls to see how often the player goes broke with each counting system and betting strategy
+# returns broke rate and average number of hands survived for each system and bankroll
 def ruin_simulation(trials=200, bankrolls=(100, 200, 400, 800),
                     max_hands=10000, num_decks=6):
     rows = []

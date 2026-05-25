@@ -4,12 +4,12 @@ sys.path.insert(0, os.path.dirname(__file__))
 
 from blackjack import run_simulation, play_hand, Shoe
 from experiments import perfect_play_simulation, err_robustness_simulation, ruin_simulation
-from blackjack_sim.tests.plots import generate_all
+from blackjack_sim.plots import generate_all
 
 DEFAULT_HANDS = 100000
 DEFAULT_DECKS = 6
 
-# experiment defaults — session values are initialised from these in main()
+# experiment defaults - session values are initialised from here in main()
 PP_TRIALS       = 20
 PP_HANDS        = 500000
 ERR_TRIALS      = 20
@@ -123,7 +123,7 @@ def main():
     num_hands = DEFAULT_HANDS
     num_decks = DEFAULT_DECKS
 
-    # session-local experiment settings, initialised from module defaults
+    # session local experiment settings, initialised from module defaults
     pp_trials      = PP_TRIALS
     pp_hands       = PP_HANDS
     err_trials     = ERR_TRIALS
@@ -158,8 +158,6 @@ def main():
             print("Saved to the results folder.")
 
         elif choice == "5":
-            # note: error_rates is hardcoded inside err_robustness_simulation;
-            # only trials and num_hands can be configured until that parameter is exposed
             sep()
             err_trials = _prompt_int("Trials", err_trials)
             err_hands  = _prompt_int("Hands per trial", err_hands)

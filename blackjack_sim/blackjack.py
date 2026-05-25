@@ -1,8 +1,8 @@
 import random
-
+# Define constants for card ranks and suits
 RANKS = ['2', '3', '4', '5', '6', '7', '8', '9', '10', 'J', 'Q', 'K', 'A']
 SUITS = ['Hearts', 'Diamonds', 'Clubs', 'Spades']
-
+# Couting systems, includes card values and balanced
 COUNT_SYSTEMS = {
     "hi_lo": {
         "values": {
@@ -10,7 +10,7 @@ COUNT_SYSTEMS = {
             '7': 0, '8': 0, '9': 0,
             '10': -1, 'J': -1, 'Q': -1, 'K': -1, 'A': -1,
         },
-        "balanced": True,
+        "balanced": True, # balanced: full deck adds 0 to running count
     },
     "zen": {
         "values": {
@@ -26,10 +26,10 @@ COUNT_SYSTEMS = {
             '8': 0, '9': 0,
             '10': -1, 'J': -1, 'Q': -1, 'K': -1, 'A': -1,
         },
-        "balanced": False,
+        "balanced": False, # unbalanced: full deck adds +4 to running count, not 0
     },
 }
-
+# class to represent a single card, with suit and rank
 class Card :
     def __init__(self, suit, rank):
         self.suit = suit
@@ -37,7 +37,7 @@ class Card :
 
     def __str__(self):
         return f"{self.rank} of {self.suit}"
-
+# hand value calculation, aces as 11 or 1 to prevent busting
 def hand_value(hand):
     value = 0
     aces = 0
@@ -56,7 +56,7 @@ def hand_value(hand):
         aces -= 1
 
     return value
-
+# helper to get rank value for counting
 def _card_rank_value(card):
     if card.rank in ['J', 'Q', 'K']:
         return 10
@@ -64,96 +64,105 @@ def _card_rank_value(card):
         return 11
     else:
         return int(card.rank)
-
+# soft hand check: hand with ace counted as 11 without busting is soft
 def _is_soft(hand):
     if not any(c.rank == 'A' for c in hand):
         return False
     hard_total = sum(1 if c.rank == 'A' else _card_rank_value(c) for c in hand)
     return hand_value(hand) != hard_total
+# basic strategy structured to check splits first, then soft totals, then hard totals.
+# Returns 'hit', 'stand', 'double', or 'split' using dealer stands on soft 17 (S17) and double after split (DAS) basic strategy.
+# soft totals are any hand with at least one ace that can be counted as 11 without busting.
+# This structure is important because some pairs are treated as hard totals,
+# and some actions (like double) are only available on the first decision of a hand,
+# which for splits is before the split occurs
 
 def basic_strategy(player_hand, dealer_upcard, can_double=True, can_split=True):
-    """Returns 'hit', 'stand', 'double', or 'split' using S17/DAS basic strategy."""
+    
     total = hand_value(player_hand)
     d = _card_rank_value(dealer_upcard)
 
+    
     if can_split and len(player_hand) == 2:
         r0 = _card_rank_value(player_hand[0])
         r1 = _card_rank_value(player_hand[1])
         if r0 == r1:
-            pv = r0
+            pair_val = r0
 
-            if pv == 11:
+            if pair_val == 11:              # never split aces
                 return "split"
-            if pv == 10:
+            if pair_val == 10:              # never split tens
                 return "stand"
-            if pv == 9:                    # stand vs 7, 10, A; split otherwise
+            if pair_val == 9:               # stand 9s vs 7 and 10 or A, split on anything else
                 return "stand" if d in (7, 10, 11) else "split"
-            if pv == 8:
+            if pair_val == 8:               # split 8s vs dealer 2-7, otherwise hit
                 return "split"
-            if pv == 7:
+            if pair_val == 7:               # split 7s vs dealer 2-7, otherwise hit
                 return "split" if 2 <= d <= 7 else "hit"
-            if pv == 6:
+            if pair_val == 6:               # split 6s vs dealer 2-6, otherwise hit
                 return "split" if 2 <= d <= 6 else "hit"
-            if pv == 5:                    # never split fives; fall through to hard-10
+            if pair_val == 5:               # never split fives, treat as hard 10 
                 pass
-            elif pv == 4:
+            elif pair_val == 4:             # split 4s only vs dealer 5 or 6, otherwise hit               
                 return "split" if d in (5, 6) else "hit"
-            elif pv in (2, 3):
+            elif pair_val in (2, 3):        # split 2s and 3s vs dealer 2-7, otherwise hit
                 return "split" if 2 <= d <= 7 else "hit"
-            # pv == 5 falls through to hard-total logic below
 
-    if _is_soft(player_hand):
-        if total >= 19:
+    if _is_soft(player_hand): # soft totals, where ace is 11
+        if total >= 19:         # soft 19 or 20 always stands, soft 21 is blackjack
             return "stand"
-        if total == 18:
+        if total == 18:         # soft 18 doubles vs 2-6, stands vs 7 and 8, hits vs 9,10,A
             if 3 <= d <= 6:
-                return "double" if can_double else "stand"  # fallback is stand, not hit
+                return "double" if can_double else "stand"
             if d in (2, 7, 8):
                 return "stand"
             return "hit"
-        if total == 17:
+        if total == 17:         # soft 17 doubles vs 3-6, otherwise hit
             return "double" if (3 <= d <= 6 and can_double) else "hit"
-        if total in (15, 16):
+        if total in (15, 16):   # soft 15 and 16 double vs 4-6, otherwise hit
             return "double" if (4 <= d <= 6 and can_double) else "hit"
-        if total in (13, 14):
+        if total in (13, 14):   # soft 13 and 14 double vs 5-6, otherwise hit
             return "double" if (5 <= d <= 6 and can_double) else "hit"
-        return "hit"  # soft 12 or lower, shouldn't normally occur
+        return "hit"  # soft 12 or lower, shouldn't occur
 
-    if total <= 8:
+    if total <= 8:          # hard 8 or less always hits
         return "hit"
-    if total == 9:
+    if total == 9:          # hard 9 always stands
         return "double" if (3 <= d <= 6 and can_double) else "hit"
-    if total == 10:
+    if total == 10:         # hard 10 doubles vs dealer 2-9, otherwise hit
         return "double" if (2 <= d <= 9 and can_double) else "hit"
-    if total == 11:                        # not vs A under S17
+    if total == 11:         # hard 11 doubles vs dealer 2-10, hits vs A
         return "double" if (2 <= d <= 10 and can_double) else "hit"
-    if total == 12:
+    if total == 12:         # hard 12 stands vs dealer 4-6, otherwise hits
         return "stand" if 4 <= d <= 6 else "hit"
-    if total <= 16:
+    if total <= 16:         # hard 13-16 stands vs dealer 2-6, otherwise hits
         return "stand" if 2 <= d <= 6 else "hit"
     return "stand"
-
+# Shoe class to represent multiple decks of cards(or one), with shuffle and deal functionality, and tracking of penetration for reshuffling
+# was going to add a configuration prompt here but it got too complex, possibly add later.
 class Shoe :
     def __init__(self, num_decks=6, penetration=0.75):
         self.penetration = max(0.01, min(0.99, penetration))
         self.cards = [Card(suit, rank) for suit in SUITS for rank in RANKS] * num_decks
         self.shuffle()
         self.start_size = len(self.cards)
-
+    # reshuffle the shoe
     def shuffle(self):
         random.shuffle(self.cards)
-
+    # deal one card from the shoe
     def deal_card(self):
         return self.cards.pop()
-
+    # check if the shoe needs to be reshuffled
+    @property
     def needs_reshuffle(self):
         dealt = self.start_size - len(self.cards)
         return dealt / self.start_size >= self.penetration
-
+    # cards left divided by 52, used for true count calculation in balanced systems
     @property
     def decks_remaining(self):
         return len(self.cards) / 52.0
-
+# Counter class, tracks: running count, true count, betting count - dependent on counting system.
+# handles reset and initialisation based on balanced/unbalanced
 class Counter:
     def __init__(self, system="hi_lo", num_decks=1):
         _system = COUNT_SYSTEMS[system]
@@ -161,22 +170,22 @@ class Counter:
         self.balanced = _system["balanced"]
         self.initial_count = 0 if self.balanced else -4 * (num_decks - 1)
         self.running_count = self.initial_count
-
+# observe a card and update the running count
     def observe(self, card):
         self.running_count += self._values[card.rank]
-
+# true count divides running count by decks remaining (balanced systems)
     def true_count(self, decks_remaining):
         dr = max(decks_remaining, 0.5)
         return self.running_count / dr
-
+# betting count is true count for balanced systems, running count for unbalanced
     def betting_count(self, decks_remaining):
         if self.balanced:
             return self.true_count(decks_remaining)
         return self.running_count
-
+# reset to initial value
     def reset(self):
         self.running_count = self.initial_count
-
+# play hand, takes shoe, returns outcomes for one or more player hands against dealer hand, following basic strategy with splits and doubles
 def play_hand(shoe):
     player_hand = [shoe.deal_card()]
     dealer_hand = [shoe.deal_card()]
@@ -271,7 +280,7 @@ def play_hand(shoe):
 
     # Splitting path
     is_ace_split = player_hand[0].rank == 'A'
-    total_hands = 2  # tracks running count; cap is 4 hands
+    total_hands = 2  # tracks running count, max is 4
 
     # Each entry: (cards, bet, is_split_ace)
     pending = [
@@ -284,7 +293,7 @@ def play_hand(shoe):
         hand, hand_bet, split_ace = pending.pop(0)
 
         if split_ace:
-            # split aces receive exactly one card and are done; no hit, double, or resplit
+            # split aces receive exactly one card, automatically finished, no resplits allowed
             finished.append((hand, hand_bet))
             continue
 
@@ -343,7 +352,7 @@ def play_hand(shoe):
         })
 
     return outcomes
-
+# takes true count and returns bet based on ramp
 def bet_ramp(true_count):
     tc = max(int(true_count), 0)
     if tc <= 1:
@@ -358,9 +367,8 @@ def bet_ramp(true_count):
         return 8
 
 def ko_bet_ramp(running_count, _num_decks=6):
-    # Thresholds anchored to KO's key count (-4) and pivot (+4) per
-    # Vancura & Fuchs, Knock-Out Blackjack. num_decks reserved for
-    # future calibration; thresholds are stable across standard shoe sizes.
+    # ko needed own bet ramp as unbalanced
+    # takes running count and returns bet based on ramp
     rc = int(running_count)
     if rc <= -1:
         return 1
@@ -372,7 +380,7 @@ def ko_bet_ramp(running_count, _num_decks=6):
         return 6
     else:
         return 8
-
+#  run a simulation with counting, returns results and count distribution for analysis of effectiveness and risk
 def run_counter(num_hands=100000, num_decks=6, system="hi_lo", penetration=0.75,
                 betting_policy=None, error_rate=0.0):
     if betting_policy is None:
@@ -396,7 +404,9 @@ def run_counter(num_hands=100000, num_decks=6, system="hi_lo", penetration=0.75,
             tc = counter.running_count
         true_counts.append(tc)
 
-        # transient misread: perturb a local copy, never the live count
+        # temporary misread of the count for this hand, based on error_rate
+        # error_rate is the probability of a misread, and if it occurs, the count is off by 1 in either direction
+        # want to make this configurable in future
         bet_tc = tc + random.choice((-1, 1)) if error_rate and random.random() < error_rate else tc
 
         if counter.balanced:
@@ -437,7 +447,8 @@ def run_counter(num_hands=100000, num_decks=6, system="hi_lo", penetration=0.75,
         "ev_per_hand": ev_per_hand,
         "edge_pct": edge_pct,
     }
-
+# simulates a player going broke with a given bankroll, counting system and betting strategy
+# returns number of hands played until broke, final bankroll, broke or not result
 def run_ruin(bankroll=200, max_hands=10000, num_decks=6, system="hi_lo",
              error_rate=0.0):
     shoe = Shoe(num_decks)
@@ -506,7 +517,7 @@ def run_ruin(bankroll=200, max_hands=10000, num_decks=6, system="hi_lo",
         "error_rate": error_rate,
     }
 
-
+# main simulation
 def run_simulation(num_hands=10000, num_decks=6, penetration=0.75):
     shoe = Shoe(num_decks, penetration)
     results = {"win": 0, "lose": 0, "push": 0, "blackjack": 0}

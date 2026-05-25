@@ -70,7 +70,7 @@ def plot_error_robustness():
 def plot_risk_of_ruin():
     df = pd.read_csv(os.path.join(RESULTS_DIR, "ruin_simulation.csv"))
 
-    # broke_rate is stored as a fraction; convert to percentage
+    # broke_rate is stored as a fraction, convert to percentage
     df["broke_pct"] = df["broke_rate"] * 100
 
     fig = plt.figure(figsize=(7, 4))
