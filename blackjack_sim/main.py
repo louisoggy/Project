@@ -4,7 +4,7 @@ sys.path.insert(0, os.path.dirname(__file__))
 
 from blackjack import run_simulation, play_hand, Shoe
 from experiments import perfect_play_simulation, err_robustness_simulation, ruin_simulation
-from blackjack_sim.plots import generate_all
+from plots import generate_all
 
 DEFAULT_HANDS = 100000
 DEFAULT_DECKS = 6

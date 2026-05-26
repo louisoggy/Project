@@ -394,7 +394,7 @@ def run_counter(num_hands=100000, num_decks=6, system="hi_lo", penetration=0.75,
     total_wagered = 0.0
 
     for _ in range(num_hands):
-        if shoe.needs_reshuffle():
+        if shoe.needs_reshuffle:
             shoe = Shoe(num_decks, penetration)
             counter.reset()
 
@@ -462,7 +462,7 @@ def run_ruin(bankroll=200, max_hands=10000, num_decks=6, system="hi_lo",
             broke = True
             break
 
-        if shoe.needs_reshuffle():
+        if shoe.needs_reshuffle:
             shoe = Shoe(num_decks)
             counter.reset()
 
@@ -523,7 +523,7 @@ def run_simulation(num_hands=10000, num_decks=6, penetration=0.75):
     results = {"win": 0, "lose": 0, "push": 0, "blackjack": 0}
 
     for _ in range(num_hands):
-        if shoe.needs_reshuffle():
+        if shoe.needs_reshuffle:
             shoe = Shoe(num_decks, penetration)
         for outcome in play_hand(shoe):
             results[outcome["result"]] += 1
